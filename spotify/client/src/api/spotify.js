@@ -1,0 +1,11 @@
+import { createApiClient } from 'core'
+
+const { req } = createApiClient('/api/spotify')
+
+export const getStatus     = ()   => req('GET',  '/status')
+export const getNowPlaying = ()   => req('GET',  '/now-playing')
+export const play          = ()   => req('PUT',  '/play')
+export const pause         = ()   => req('PUT',  '/pause')
+export const next          = ()   => req('POST', '/next')
+export const previous      = ()   => req('POST', '/previous')
+export const seek          = (ms) => req('PUT',  `/seek?position_ms=${Math.round(ms)}`)
