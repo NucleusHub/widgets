@@ -3,5 +3,5 @@ dist/
 .env
 .env.local
 
-# Per-widget npm lock files are replaced by the root pnpm-lock.yaml
-package-lock.json
+# Client lock files are replaced by the root pnpm-lock.yaml
+spotify/client/package-lock.json
