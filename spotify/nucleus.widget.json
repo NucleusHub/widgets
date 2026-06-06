@@ -1,0 +1,14 @@
+{
+  "id": "spotify",
+  "name": "Spotify",
+  "description": "Now playing & playback controls",
+  "slot": "dashboard",
+  "size": "medium",
+  "enabled": true,
+  "nginx": {
+    "routes": [
+      { "path": "/api/spotify", "upstream": "spotify-server:3002" },
+      { "path": "/spotify", "upstream": "spotify-client:5176", "websocket": true }
+    ]
+  }
+}
