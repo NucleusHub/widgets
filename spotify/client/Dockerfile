@@ -3,14 +3,14 @@ RUN corepack enable pnpm
 WORKDIR /app
 
 # ── Dependency layer (cached unless lock file / package.json changes) ──
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
-COPY spotify/client/package.json ./spotify/client/
-COPY spotify/server/package.json  ./spotify/server/
+COPY widgets/package.json widgets/pnpm-workspace.yaml widgets/pnpm-lock.yaml widgets/.npmrc ./
+COPY widgets/spotify/client/package.json ./spotify/client/
+COPY widgets/spotify/server/package.json ./spotify/server/
 RUN pnpm install --frozen-lockfile
 
 # ── Source files (hot-reload volumes override these at runtime) ──
-COPY core              ./core
-COPY spotify/client    ./spotify/client
+COPY widgets/core            ./core
+COPY widgets/spotify/client  ./spotify/client
 
 EXPOSE 5176
 CMD ["pnpm", "--filter", "nucleus-spotify-client", "dev"]
