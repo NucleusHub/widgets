@@ -116,13 +116,13 @@ onUnmounted(() => { clearInterval(pollTimer); clearInterval(tickTimer) })
 
     <!-- Player -->
     <template v-else>
-      <!-- Art + track info -->
-      <div class="flex items-center gap-3 px-3 pt-3 pb-1">
-        <div class="w-14 h-14 rounded-lg overflow-hidden shrink-0 bg-white/8">
+      <!-- Mobile list layout: single row -->
+      <div class="list-row">
+        <div class="w-10 h-10 rounded-md overflow-hidden shrink-0 bg-white/8">
           <img v-if="track?.album?.image" :src="track.album.image" :key="track.id"
                class="w-full h-full object-cover" />
           <div v-else class="w-full h-full flex items-center justify-center">
-            <svg class="w-6 h-6 text-white/20" fill="currentColor" viewBox="0 0 24 24">
+            <svg class="w-4 h-4 text-white/20" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 3v10.55A4 4 0 1014 17V7h4V3h-6z"/>
             </svg>
           </div>
@@ -131,51 +131,95 @@ onUnmounted(() => { clearInterval(pollTimer); clearInterval(tickTimer) })
           <p class="text-white font-semibold text-sm leading-snug truncate">
             {{ track?.name ?? 'Nothing playing' }}
           </p>
-          <p class="text-white/50 text-xs mt-0.5 truncate">
+          <p class="text-white/50 text-xs truncate">
             {{ track ? track.artists.map(a => a.name).join(', ') : 'Open Spotify to start' }}
           </p>
         </div>
-      </div>
-
-      <!-- Seek bar -->
-      <div class="px-3 mt-1">
-        <input
-          type="range"
-          :min="0" :max="durationMs || 1" :value="progressMs"
-          :disabled="!track"
-          class="seek-bar"
-          :style="seekBarStyle"
-          @mousedown="onSeekStart"
-          @touchstart.passive="onSeekStart"
-          @input="onSeekMove"
-          @change="onSeekCommit"
-        />
-        <div class="flex justify-between text-[10px] text-white/30 mt-1 select-none">
-          <span>{{ fmt(progressMs) }}</span>
-          <span>{{ fmt(durationMs) }}</span>
+        <div class="flex items-center gap-2 shrink-0">
+          <button class="ctrl-btn" :disabled="!track" @click="skipPrevious" title="Previous">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M6 6h2v12H6V6zm3.5 6 8.5 6V6l-8.5 6z"/>
+            </svg>
+          </button>
+          <button class="play-btn" :disabled="!track" @click="togglePlay">
+            <svg v-if="playing" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+            </svg>
+            <svg v-else class="w-4 h-4 translate-x-px" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+          </button>
+          <button class="ctrl-btn" :disabled="!track" @click="skipNext" title="Next">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M6 18l8.5-6L6 6v12zm2-8.14L11.03 12 8 14.14V9.86zM16 6h2v12h-2V6z"/>
+            </svg>
+          </button>
         </div>
       </div>
 
-      <!-- Controls -->
-      <div class="flex items-center justify-center gap-4 px-3 pb-3 mt-1">
-        <button class="ctrl-btn" :disabled="!track" @click="skipPrevious" title="Previous">
-          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M6 6h2v12H6V6zm3.5 6 8.5 6V6l-8.5 6z"/>
-          </svg>
-        </button>
-        <button class="play-btn" :disabled="!track" @click="togglePlay">
-          <svg v-if="playing" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
-          </svg>
-          <svg v-else class="w-4 h-4 translate-x-px" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M8 5v14l11-7z"/>
-          </svg>
-        </button>
-        <button class="ctrl-btn" :disabled="!track" @click="skipNext" title="Next">
-          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M6 18l8.5-6L6 6v12zm2-8.14L11.03 12 8 14.14V9.86zM16 6h2v12h-2V6z"/>
-          </svg>
-        </button>
+      <!-- Desktop card layout: art + info + seek + controls -->
+      <div class="card-layout">
+        <!-- Art + track info -->
+        <div class="flex items-center gap-3 px-3 pt-3 pb-1">
+          <div class="w-14 h-14 rounded-lg overflow-hidden shrink-0 bg-white/8">
+            <img v-if="track?.album?.image" :src="track.album.image" :key="track.id"
+                 class="w-full h-full object-cover" />
+            <div v-else class="w-full h-full flex items-center justify-center">
+              <svg class="w-6 h-6 text-white/20" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 3v10.55A4 4 0 1014 17V7h4V3h-6z"/>
+              </svg>
+            </div>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-white font-semibold text-sm leading-snug truncate">
+              {{ track?.name ?? 'Nothing playing' }}
+            </p>
+            <p class="text-white/50 text-xs mt-0.5 truncate">
+              {{ track ? track.artists.map(a => a.name).join(', ') : 'Open Spotify to start' }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Seek bar -->
+        <div class="px-3 mt-1">
+          <input
+            type="range"
+            :min="0" :max="durationMs || 1" :value="progressMs"
+            :disabled="!track"
+            class="seek-bar"
+            :style="seekBarStyle"
+            @mousedown="onSeekStart"
+            @touchstart.passive="onSeekStart"
+            @input="onSeekMove"
+            @change="onSeekCommit"
+          />
+          <div class="flex justify-between text-[10px] text-white/30 mt-1 select-none">
+            <span>{{ fmt(progressMs) }}</span>
+            <span>{{ fmt(durationMs) }}</span>
+          </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="flex items-center justify-center gap-4 px-3 pb-3 mt-1">
+          <button class="ctrl-btn" :disabled="!track" @click="skipPrevious" title="Previous">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M6 6h2v12H6V6zm3.5 6 8.5 6V6l-8.5 6z"/>
+            </svg>
+          </button>
+          <button class="play-btn" :disabled="!track" @click="togglePlay">
+            <svg v-if="playing" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+            </svg>
+            <svg v-else class="w-4 h-4 translate-x-px" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+          </button>
+          <button class="ctrl-btn" :disabled="!track" @click="skipNext" title="Next">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M6 18l8.5-6L6 6v12zm2-8.14L11.03 12 8 14.14V9.86zM16 6h2v12h-2V6z"/>
+            </svg>
+          </button>
+        </div>
       </div>
     </template>
 
@@ -193,6 +237,16 @@ onUnmounted(() => { clearInterval(pollTimer); clearInterval(tickTimer) })
   box-shadow:
     0 16px 48px rgba(0, 0, 0, 0.45),
     0 0 0 0.5px rgba(255, 255, 255, 0.04) inset;
+}
+
+/* Mobile: full-width list row; desktop: card layout */
+.list-row  { display: none; }
+.card-layout { display: block; }
+
+@media (max-width: 639px) {
+  .widget { width: 100%; border-radius: 14px; }
+  .list-row  { display: flex; align-items: center; gap: 12px; padding: 10px 12px; }
+  .card-layout { display: none; }
 }
 
 .seek-bar {
