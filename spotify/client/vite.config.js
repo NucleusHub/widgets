@@ -22,6 +22,6 @@ export default defineConfig({
         changeOrigin: true,
       },
     },
-    allowedHosts: true,
+    allowedHosts: ['nucleus.home', 'server.tail874dlf.ts.net'],
   },
 })
