@@ -3,7 +3,9 @@
   "name": "Spotify",
   "description": "Now playing & playback controls",
   "slot": "dashboard",
-  "size": "medium",
+  "sizes": ["small", "medium", "large"],
+  "defaultSize": "medium",
+  "configurable": false,
   "enabled": true,
   "nginx": {
     "routes": [
