@@ -2,6 +2,7 @@
   "id": "spotify",
   "name": "Spotify",
   "description": "Now playing & playback controls",
+  "route": "/spotify",
   "slot": "dashboard",
   "sizes": ["small", "medium", "large"],
   "defaultSize": "medium",
@@ -12,5 +13,17 @@
       { "path": "/api/spotify", "upstream": "spotify-server:3002" },
       { "path": "/spotify", "upstream": "spotify-client:5176", "websocket": true }
     ]
+  },
+  "server": {
+    "service": "spotify-server",
+    "port": 3002,
+    "env": {
+      "SPOTIFY_CLIENT_ID": "${SPOTIFY_CLIENT_ID}",
+      "SPOTIFY_CLIENT_SECRET": "${SPOTIFY_CLIENT_SECRET}",
+      "SPOTIFY_REDIRECT_URI": "${SPOTIFY_REDIRECT_URI:-http://nucleus.home/api/spotify/callback}",
+      "SPOTIFY_SUCCESS_REDIRECT": "${SPOTIFY_SUCCESS_REDIRECT:-http://nucleus.home/spotify}"
+    },
+    "depends": [],
+    "healthEndpoint": "/api/spotify/status"
   }
 }
