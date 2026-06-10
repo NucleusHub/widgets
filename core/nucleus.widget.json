@@ -1,0 +1,8 @@
+{
+  "id": "core",
+  "name": "Core",
+  "description": "System infrastructure required by Nucleus",
+  "slot": "system",
+  "locked": true,
+  "enabled": true
+}
