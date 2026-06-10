@@ -2,7 +2,11 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { getStatus, getNowPlaying, play, pause, next, previous, seek } from '@/api/spotify.js'
 
-const status     = ref('loading') // 'loading' | 'unauthenticated' | 'ready'
+const props = defineProps({
+  size: { type: String, default: 'medium' },
+})
+
+const status     = ref('loading')
 const track      = ref(null)
 const playing    = ref(false)
 const progressMs = ref(0)
@@ -46,9 +50,8 @@ function startPolling() {
   fetchNowPlaying()
   pollTimer = setInterval(fetchNowPlaying, 3000)
   tickTimer = setInterval(() => {
-    if (playing.value && !isSeeking.value && durationMs.value > 0) {
+    if (playing.value && !isSeeking.value && durationMs.value > 0)
       progressMs.value = Math.min(progressMs.value + 250, durationMs.value)
-    }
   }, 250)
 }
 
@@ -84,151 +87,151 @@ onUnmounted(() => { clearInterval(pollTimer); clearInterval(tickTimer) })
 </script>
 
 <template>
-  <div class="widget">
+  <div class="widget" :class="`size-${size}`">
 
-    <!-- Loading -->
+    <!-- ── Loading ── -->
     <template v-if="status === 'loading'">
-      <div class="flex items-center gap-3 px-4 py-3">
-        <svg class="w-4 h-4 animate-spin text-white/30 shrink-0" viewBox="0 0 24 24" fill="none">
+      <div class="status-card">
+        <svg style="width:16px;height:16px;animation:spin 1s linear infinite;color:rgba(255,255,255,0.3);flex-shrink:0" viewBox="0 0 24 24" fill="none">
           <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"
                   stroke-dasharray="31.4" stroke-dashoffset="10" />
         </svg>
-        <span class="text-white/30 text-sm">Connecting…</span>
+        <span style="color:rgba(255,255,255,0.3);font-size:13px">Connecting…</span>
       </div>
     </template>
 
-    <!-- Unauthenticated -->
+    <!-- ── Unauthenticated ── -->
     <template v-else-if="status === 'unauthenticated'">
-      <div class="flex items-center gap-3 px-4 py-3">
-        <svg class="w-7 h-7 shrink-0" viewBox="0 0 168 168" xmlns="http://www.w3.org/2000/svg">
+      <div class="status-card">
+        <svg style="width:28px;height:28px;flex-shrink:0" viewBox="0 0 168 168" xmlns="http://www.w3.org/2000/svg">
           <circle cx="84" cy="84" r="84" fill="#1DB954"/>
           <path d="M122.3 116.7c-1.6 2.6-4.9 3.4-7.5 1.8-20.5-12.5-46.3-15.3-76.7-8.4-2.9.7-5.9-1.1-6.6-4-.7-2.9 1.1-5.9 4-6.6 33.2-7.6 61.7-4.3 84.7 9.7 2.6 1.6 3.4 4.9 2.1 7.5zm10.3-22.9c-2 3.3-6.3 4.3-9.5 2.3-23.4-14.4-59.1-18.5-86.8-10.1-3.5 1.1-7.3-.9-8.4-4.4-1.1-3.5.9-7.3 4.4-8.4 31.6-9.6 70.9-4.9 97.9 11.5 3.3 2 4.3 6.3 2.4 9.1zm.9-23.8c-28-16.6-74.2-18.1-100.9-10-4.2 1.3-8.7-1.1-10-5.3-1.3-4.2 1.1-8.7 5.3-10 30.6-9.3 81.5-7.5 113.7 11.6 3.8 2.3 5.1 7.2 2.8 11-2.2 3.7-7.1 5-10.9 2.7z" fill="white"/>
         </svg>
-        <div class="flex-1 min-w-0">
-          <p class="text-white text-sm font-medium leading-none">Spotify</p>
-          <a href="/api/spotify/login"
-             class="text-[#1DB954] text-xs hover:underline mt-0.5 inline-block">
+        <div style="flex:1;min-width:0">
+          <p style="color:#fff;font-size:13px;font-weight:600;line-height:1">Spotify</p>
+          <a href="/api/spotify/login" style="color:#1DB954;font-size:11px;text-decoration:none;margin-top:4px;display:inline-block">
             Connect account →
           </a>
         </div>
       </div>
     </template>
 
-    <!-- Player -->
+    <!-- ── Player ── -->
     <template v-else>
-      <!-- Mobile list layout: single row -->
-      <div class="list-row">
-        <div class="w-10 h-10 rounded-md overflow-hidden shrink-0 bg-white/8">
-          <img v-if="track?.album?.image" :src="track.album.image" :key="track.id"
-               class="w-full h-full object-cover" />
-          <div v-else class="w-full h-full flex items-center justify-center">
-            <svg class="w-4 h-4 text-white/20" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 3v10.55A4 4 0 1014 17V7h4V3h-6z"/>
-            </svg>
+
+      <!-- SMALL: single compact row -->
+      <template v-if="size === 'small'">
+        <div class="small-row">
+          <div class="art art-sm">
+            <img v-if="track?.album?.image" :src="track.album.image" :key="track.id" class="art-img" />
+            <span v-else class="art-placeholder">♪</span>
+          </div>
+          <div class="track-info">
+            <p class="track-name">{{ track?.name ?? 'Nothing playing' }}</p>
+            <p class="track-artist">{{ track ? track.artists.map(a => a.name).join(', ') : '—' }}</p>
+          </div>
+          <div class="controls controls-sm">
+            <button class="ctrl-btn" :disabled="!track" @click="skipPrevious">
+              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6V6zm3.5 6 8.5 6V6l-8.5 6z"/></svg>
+            </button>
+            <button class="play-btn play-btn-sm" :disabled="!track" @click="togglePlay">
+              <svg v-if="playing" class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+              <svg v-else class="w-3.5 h-3.5 translate-x-px" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            </button>
+            <button class="ctrl-btn" :disabled="!track" @click="skipNext">
+              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zm2-8.14L11.03 12 8 14.14V9.86zM16 6h2v12h-2V6z"/></svg>
+            </button>
           </div>
         </div>
-        <div class="flex-1 min-w-0">
-          <p class="text-white font-semibold text-sm leading-snug truncate">
-            {{ track?.name ?? 'Nothing playing' }}
-          </p>
-          <p class="text-white/50 text-xs truncate">
-            {{ track ? track.artists.map(a => a.name).join(', ') : 'Open Spotify to start' }}
-          </p>
-        </div>
-        <div class="flex items-center gap-2 shrink-0">
-          <button class="ctrl-btn" :disabled="!track" @click="skipPrevious" title="Previous">
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M6 6h2v12H6V6zm3.5 6 8.5 6V6l-8.5 6z"/>
-            </svg>
-          </button>
-          <button class="play-btn" :disabled="!track" @click="togglePlay">
-            <svg v-if="playing" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
-            </svg>
-            <svg v-else class="w-4 h-4 translate-x-px" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M8 5v14l11-7z"/>
-            </svg>
-          </button>
-          <button class="ctrl-btn" :disabled="!track" @click="skipNext" title="Next">
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M6 18l8.5-6L6 6v12zm2-8.14L11.03 12 8 14.14V9.86zM16 6h2v12h-2V6z"/>
-            </svg>
-          </button>
-        </div>
-      </div>
+      </template>
 
-      <!-- Desktop card layout: art + info + seek + controls -->
-      <div class="card-layout">
-        <!-- Art + track info -->
-        <div class="flex items-center gap-3 px-3 pt-3 pb-1">
-          <div class="w-14 h-14 rounded-lg overflow-hidden shrink-0 bg-white/8">
-            <img v-if="track?.album?.image" :src="track.album.image" :key="track.id"
-                 class="w-full h-full object-cover" />
-            <div v-else class="w-full h-full flex items-center justify-center">
-              <svg class="w-6 h-6 text-white/20" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 3v10.55A4 4 0 1014 17V7h4V3h-6z"/>
-              </svg>
+      <!-- MEDIUM: art + info + seek + controls -->
+      <template v-else-if="size === 'medium'">
+        <div class="medium-layout">
+          <div class="medium-top">
+            <div class="art art-md">
+              <img v-if="track?.album?.image" :src="track.album.image" :key="track.id" class="art-img" />
+              <span v-else class="art-placeholder">♪</span>
+            </div>
+            <div class="track-info">
+              <p class="track-name">{{ track?.name ?? 'Nothing playing' }}</p>
+              <p class="track-artist">{{ track ? track.artists.map(a => a.name).join(', ') : 'Open Spotify to start' }}</p>
             </div>
           </div>
-          <div class="flex-1 min-w-0">
-            <p class="text-white font-semibold text-sm leading-snug truncate">
-              {{ track?.name ?? 'Nothing playing' }}
-            </p>
-            <p class="text-white/50 text-xs mt-0.5 truncate">
-              {{ track ? track.artists.map(a => a.name).join(', ') : 'Open Spotify to start' }}
-            </p>
+          <div class="seek-wrap">
+            <input type="range" :min="0" :max="durationMs || 1" :value="progressMs"
+              :disabled="!track" class="seek-bar" :style="seekBarStyle"
+              @mousedown="onSeekStart" @touchstart.passive="onSeekStart"
+              @input="onSeekMove" @change="onSeekCommit" />
+            <div class="seek-times">
+              <span>{{ fmt(progressMs) }}</span>
+              <span>{{ fmt(durationMs) }}</span>
+            </div>
+          </div>
+          <div class="controls controls-md">
+            <button class="ctrl-btn" :disabled="!track" @click="skipPrevious">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6V6zm3.5 6 8.5 6V6l-8.5 6z"/></svg>
+            </button>
+            <button class="play-btn" :disabled="!track" @click="togglePlay">
+              <svg v-if="playing" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+              <svg v-else class="w-4 h-4 translate-x-px" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            </button>
+            <button class="ctrl-btn" :disabled="!track" @click="skipNext">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zm2-8.14L11.03 12 8 14.14V9.86zM16 6h2v12h-2V6z"/></svg>
+            </button>
           </div>
         </div>
+      </template>
 
-        <!-- Seek bar -->
-        <div class="px-3 mt-1">
-          <input
-            type="range"
-            :min="0" :max="durationMs || 1" :value="progressMs"
-            :disabled="!track"
-            class="seek-bar"
-            :style="seekBarStyle"
-            @mousedown="onSeekStart"
-            @touchstart.passive="onSeekStart"
-            @input="onSeekMove"
-            @change="onSeekCommit"
-          />
-          <div class="flex justify-between text-[10px] text-white/30 mt-1 select-none">
-            <span>{{ fmt(progressMs) }}</span>
-            <span>{{ fmt(durationMs) }}</span>
+      <!-- LARGE: centered art + full info + seek + big controls -->
+      <template v-else>
+        <div class="large-layout">
+          <div class="large-art-center">
+            <div class="art art-xl">
+              <img v-if="track?.album?.image" :src="track.album.image" :key="track.id" class="art-img" />
+              <span v-else class="art-placeholder" style="font-size:28px">♪</span>
+            </div>
+          </div>
+          <div class="large-info">
+            <p class="large-track-name">{{ track?.name ?? 'Nothing playing' }}</p>
+            <p class="large-track-artist">{{ track ? track.artists.map(a => a.name).join(', ') : 'Open Spotify to start' }}</p>
+            <p v-if="track?.album?.name" class="large-track-album">{{ track.album.name }}</p>
+          </div>
+          <div class="seek-wrap">
+            <input type="range" :min="0" :max="durationMs || 1" :value="progressMs"
+              :disabled="!track" class="seek-bar" :style="seekBarStyle"
+              @mousedown="onSeekStart" @touchstart.passive="onSeekStart"
+              @input="onSeekMove" @change="onSeekCommit" />
+            <div class="seek-times">
+              <span>{{ fmt(progressMs) }}</span>
+              <span>{{ fmt(durationMs) }}</span>
+            </div>
+          </div>
+          <div class="controls controls-lg">
+            <button class="ctrl-btn ctrl-btn-lg" :disabled="!track" @click="skipPrevious">
+              <svg style="width:20px;height:20px" fill="currentColor" viewBox="0 0 24 24"><path d="M6 6h2v12H6V6zm3.5 6 8.5 6V6l-8.5 6z"/></svg>
+            </button>
+            <button class="play-btn play-btn-lg" :disabled="!track" @click="togglePlay">
+              <svg v-if="playing" style="width:24px;height:24px" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+              <svg v-else style="width:24px;height:24px;transform:translateX(1px)" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            </button>
+            <button class="ctrl-btn ctrl-btn-lg" :disabled="!track" @click="skipNext">
+              <svg style="width:20px;height:20px" fill="currentColor" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zm2-8.14L11.03 12 8 14.14V9.86zM16 6h2v12h-2V6z"/></svg>
+            </button>
           </div>
         </div>
+      </template>
 
-        <!-- Controls -->
-        <div class="flex items-center justify-center gap-4 px-3 pb-3 mt-1">
-          <button class="ctrl-btn" :disabled="!track" @click="skipPrevious" title="Previous">
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M6 6h2v12H6V6zm3.5 6 8.5 6V6l-8.5 6z"/>
-            </svg>
-          </button>
-          <button class="play-btn" :disabled="!track" @click="togglePlay">
-            <svg v-if="playing" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
-            </svg>
-            <svg v-else class="w-4 h-4 translate-x-px" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M8 5v14l11-7z"/>
-            </svg>
-          </button>
-          <button class="ctrl-btn" :disabled="!track" @click="skipNext" title="Next">
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M6 18l8.5-6L6 6v12zm2-8.14L11.03 12 8 14.14V9.86zM16 6h2v12h-2V6z"/>
-            </svg>
-          </button>
-        </div>
-      </div>
     </template>
-
   </div>
 </template>
 
 <style scoped>
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Base widget shell ── */
 .widget {
-  width: 260px;
+  display: inline-block;
   background: rgba(10, 10, 22, 0.82);
   backdrop-filter: blur(28px);
   -webkit-backdrop-filter: blur(28px);
@@ -237,18 +240,41 @@ onUnmounted(() => { clearInterval(pollTimer); clearInterval(tickTimer) })
   box-shadow:
     0 16px 48px rgba(0, 0, 0, 0.45),
     0 0 0 0.5px rgba(255, 255, 255, 0.04) inset;
+  overflow: hidden;
+  color: #fff;
 }
 
-/* Mobile: full-width list row; desktop: card layout */
-.list-row  { display: none; }
-.card-layout { display: block; }
-
-@media (max-width: 639px) {
-  .widget { width: 100%; border-radius: 14px; }
-  .list-row  { display: flex; align-items: center; gap: 12px; padding: 10px 12px; }
-  .card-layout { display: none; }
+/* ── Status card: fixed size regardless of size prop ── */
+.status-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  width: 260px;
 }
 
+/* ── Album art ── */
+.art {
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.art-sm  { width: 36px; height: 36px; }
+.art-md  { width: 52px; height: 52px; border-radius: 10px; }
+.art-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.art-placeholder { font-size: 14px; color: rgba(255,255,255,0.2); }
+
+/* ── Track info ── */
+.track-info  { flex: 1; min-width: 0; }
+.track-name  { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.3; }
+.track-artist { font-size: 11px; color: rgba(255,255,255,0.45); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+
+/* ── Seek bar ── */
+.seek-wrap { padding: 0 14px; }
 .seek-bar {
   -webkit-appearance: none;
   appearance: none;
@@ -263,13 +289,9 @@ onUnmounted(() => { clearInterval(pollTimer); clearInterval(tickTimer) })
 .seek-bar::-webkit-slider-runnable-track { height: 3px; border-radius: 2px; }
 .seek-bar::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-  background: #fff;
-  transform: scale(0);
-  transition: transform 0.15s ease;
-  margin-top: -4px;
+  width: 11px; height: 11px;
+  border-radius: 50%; background: #fff;
+  transform: scale(0); transition: transform 0.15s ease; margin-top: -4px;
 }
 .seek-bar:hover::-webkit-slider-thumb,
 .seek-bar:active::-webkit-slider-thumb { transform: scale(1); }
@@ -280,10 +302,21 @@ onUnmounted(() => { clearInterval(pollTimer); clearInterval(tickTimer) })
 }
 .seek-bar:hover::-moz-range-thumb,
 .seek-bar:active::-moz-range-thumb { transform: scale(1); }
+.seek-times {
+  display: flex; justify-content: space-between;
+  font-size: 10px; color: rgba(255,255,255,0.3);
+  margin-top: 3px; user-select: none;
+}
+
+/* ── Controls ── */
+.controls { display: flex; align-items: center; justify-content: center; gap: 8px; }
+.controls-sm { gap: 4px; flex-shrink: 0; }
+.controls-md { padding: 4px 14px 12px; gap: 12px; }
+.controls-lg { padding: 8px 16px 16px; gap: 16px; }
 
 .ctrl-btn {
   display: flex; align-items: center; justify-content: center;
-  width: 2rem; height: 2rem; border-radius: 50%;
+  width: 32px; height: 32px; border-radius: 50%;
   color: rgba(255,255,255,0.6);
   transition: color 0.15s, background 0.15s;
   cursor: pointer;
@@ -291,10 +324,11 @@ onUnmounted(() => { clearInterval(pollTimer); clearInterval(tickTimer) })
 .ctrl-btn:hover  { color: #fff; background: rgba(255,255,255,0.08); }
 .ctrl-btn:active { background: rgba(255,255,255,0.14); }
 .ctrl-btn:disabled { opacity: 0.25; cursor: not-allowed; pointer-events: none; }
+.ctrl-btn-lg { width: 38px; height: 38px; }
 
 .play-btn {
   display: flex; align-items: center; justify-content: center;
-  width: 2.25rem; height: 2.25rem; border-radius: 50%;
+  width: 34px; height: 34px; border-radius: 50%;
   background: #fff; color: #0a0a16;
   transition: background 0.15s, transform 0.1s;
   cursor: pointer;
@@ -302,4 +336,78 @@ onUnmounted(() => { clearInterval(pollTimer); clearInterval(tickTimer) })
 .play-btn:hover  { background: #e8e8f0; }
 .play-btn:active { transform: scale(0.93); }
 .play-btn:disabled { opacity: 0.25; cursor: not-allowed; pointer-events: none; }
+.play-btn-sm { width: 28px; height: 28px; }
+.play-btn-lg { width: 48px; height: 48px; }
+
+/* ── SMALL layout ── */
+.small-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+}
+
+/* ── MEDIUM layout ── */
+.medium-layout { display: flex; flex-direction: column; width: 260px; }
+.medium-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px 10px;
+}
+
+/* ── LARGE layout ── */
+.large-layout { display: flex; flex-direction: column; width: 320px; }
+
+.large-art-center {
+  display: flex;
+  justify-content: center;
+  padding: 16px 16px 12px;
+}
+
+.art-xl {
+  width: 160px;
+  height: 160px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.large-info {
+  padding: 0 16px 10px;
+  text-align: center;
+}
+
+.large-track-name {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.3;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.large-track-artist {
+  font-size: 12px;
+  color: rgba(255,255,255,0.5);
+  margin-top: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.large-track-album {
+  font-size: 11px;
+  color: rgba(255,255,255,0.3);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 </style>
