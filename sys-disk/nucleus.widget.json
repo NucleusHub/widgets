@@ -1,0 +1,10 @@
+{
+  "id": "sys-disk",
+  "name": "Storage",
+  "description": "Disk usage across volumes",
+  "slot": "nucleus",
+  "movable": false,
+  "configurable": false,
+  "enabled": true,
+  "static": true
+}

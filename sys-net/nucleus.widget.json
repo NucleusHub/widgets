@@ -1,0 +1,10 @@
+{
+  "id": "sys-net",
+  "name": "Network",
+  "description": "Throughput & uptime",
+  "slot": "nucleus",
+  "movable": false,
+  "configurable": false,
+  "enabled": true,
+  "static": true
+}

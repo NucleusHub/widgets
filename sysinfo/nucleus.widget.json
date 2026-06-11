@@ -1,0 +1,19 @@
+{
+  "id": "sysinfo",
+  "name": "System Info",
+  "description": "Provides live system metrics to the nucleus system widgets",
+  "slot": "system",
+  "locked": true,
+  "enabled": true,
+  "nginx": {
+    "routes": [
+      { "path": "/api/sysinfo", "upstream": "sysinfo-server:3010" }
+    ]
+  },
+  "server": {
+    "service": "sysinfo-server",
+    "port": 3010,
+    "depends": [],
+    "healthEndpoint": "/api/sysinfo/health"
+  }
+}

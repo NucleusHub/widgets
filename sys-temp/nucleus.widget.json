@@ -1,0 +1,10 @@
+{
+  "id": "sys-temp",
+  "name": "Temperatures",
+  "description": "CPU & GPU thermals",
+  "slot": "nucleus",
+  "movable": false,
+  "configurable": false,
+  "enabled": true,
+  "static": true
+}

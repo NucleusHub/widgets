@@ -1,0 +1,10 @@
+{
+  "id": "sys-load",
+  "name": "System Load",
+  "description": "CPU, RAM & GPU utilisation",
+  "slot": "nucleus",
+  "movable": false,
+  "configurable": false,
+  "enabled": true,
+  "static": true
+}

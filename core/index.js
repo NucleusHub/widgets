@@ -14,3 +14,8 @@ export { default as WidgetCard }    from './components/WidgetCard.vue'
 export { default as WidgetLoading } from './components/WidgetLoading.vue'
 export { default as WidgetStatus }  from './components/WidgetStatus.vue'
 export { default as WidgetShell }   from './components/WidgetShell.vue'
+
+// Stat primitives — shared by the system-monitor widgets.
+export { default as StatTile } from './components/StatTile.vue'
+export { default as StatBar }  from './components/StatBar.vue'
+export { default as StatRing } from './components/StatRing.vue'
