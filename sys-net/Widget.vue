@@ -1,5 +1,4 @@
 <script setup>
-import { computed } from 'vue'
 import StatTile from '../core/components/StatTile.vue'
 import StatBar from '../core/components/StatBar.vue'
 import { useSysInfo } from '@/composables/useSysInfo.js'
@@ -16,14 +15,6 @@ const rate = (mbps) => {
   if (v < 1) return `${Math.round(v * 1000)} KB/s`
   return `${v.toFixed(1)} MB/s`
 }
-
-const uptime = computed(() => {
-  const s = data.value?.uptime
-  if (s == null) return '—'
-  const d = Math.floor(s / 86400)
-  const h = Math.floor((s % 86400) / 3600)
-  return `${d}d ${String(h).padStart(2, '0')}h`
-})
 </script>
 
 <template>
@@ -32,8 +23,8 @@ const uptime = computed(() => {
     <StatBar label="↓ Down" :value="scale(data?.net?.downMBs)" :display="rate(data?.net?.downMBs)" color="#34d399" />
     <StatBar label="↑ Up" :value="scale(data?.net?.upMBs)" :display="rate(data?.net?.upMBs)" color="#60a5fa" />
     <div class="net-foot">
-      <span>Uptime</span>
-      <span class="net-up">{{ uptime }}</span>
+      <span>Local IP</span>
+      <span class="net-up">{{ data?.net?.localIp ?? '—' }}</span>
     </div>
   </StatTile>
 </template>

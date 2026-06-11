@@ -38,6 +38,34 @@ function readNetDev() {
   return null
 }
 
+// Host local IP. The container only has its docker address, so read the host's
+// local addresses from fib_trie (host net namespace via PID 1) and prefer a LAN
+// range over the docker bridge (172.x).
+const FIBTRIE_PATHS = ['/proc/1/net/fib_trie', '/host/proc/1/net/fib_trie', '/proc/net/fib_trie']
+function localIp() {
+  for (const path of FIBTRIE_PATHS) {
+    try {
+      const lines = readFileSync(path, 'utf8').split('\n')
+      const ips = []
+      for (let i = 0; i < lines.length; i++) {
+        const m = lines[i].match(/\|--\s+(\d+\.\d+\.\d+\.\d+)/)
+        if (m && /host\s+LOCAL/.test(lines[i + 1] || '') && !m[1].startsWith('127.')) {
+          ips.push(m[1])
+        }
+      }
+      const pick =
+        ips.find((ip) => ip.startsWith('192.168.')) ||
+        ips.find((ip) => ip.startsWith('10.')) ||
+        ips.find((ip) => !ip.startsWith('172.')) ||
+        ips[0]
+      if (pick) return pick
+    } catch {
+      /* try next path */
+    }
+  }
+  return null
+}
+
 let prevNet = null // { t, ifaces }
 
 function networkRate() {
@@ -89,7 +117,7 @@ app.get('/api/sysinfo', async (_, res) => {
       (c) => c.utilizationGpu != null || c.temperatureGpu != null
     )
 
-    const net = networkRate()
+    const net = { ...networkRate(), localIp: localIp() }
 
     res.json({
       cpu: { load: load.currentLoad ?? 0 },
