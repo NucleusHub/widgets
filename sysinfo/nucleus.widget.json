@@ -3,7 +3,6 @@
   "name": "System Info",
   "description": "Provides live system metrics to the nucleus system widgets",
   "slot": "system",
-  "locked": true,
   "enabled": true,
   "nginx": {
     "routes": [

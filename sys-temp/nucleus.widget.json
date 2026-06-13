@@ -3,6 +3,7 @@
   "name": "Temperatures",
   "description": "CPU & GPU thermals",
   "slot": "nucleus",
+  "dependsOn": "sysinfo",
   "movable": false,
   "configurable": false,
   "enabled": true,

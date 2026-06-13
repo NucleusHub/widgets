@@ -3,6 +3,7 @@
   "name": "System Load",
   "description": "CPU, RAM & GPU utilisation",
   "slot": "nucleus",
+  "dependsOn": "sysinfo",
   "movable": false,
   "configurable": false,
   "enabled": true,

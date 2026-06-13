@@ -3,6 +3,7 @@
   "name": "Storage",
   "description": "Disk usage across volumes",
   "slot": "nucleus",
+  "dependsOn": "sysinfo",
   "movable": false,
   "configurable": false,
   "enabled": true,

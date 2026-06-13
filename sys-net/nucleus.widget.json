@@ -3,6 +3,7 @@
   "name": "Network",
   "description": "Throughput & uptime",
   "slot": "nucleus",
+  "dependsOn": "sysinfo",
   "movable": false,
   "configurable": false,
   "enabled": true,
