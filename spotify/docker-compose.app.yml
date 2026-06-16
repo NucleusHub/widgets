@@ -3,6 +3,11 @@ services:
     build:
       context: ./server
     restart: unless-stopped
+    labels:
+      nucleus.managed: "true"
+      nucleus.stack: "nucleus"
+      nucleus.role: "widget-server"
+      nucleus.app: "spotify"
     environment:
       PORT: 3002
       SPOTIFY_CLIENT_ID: ${SPOTIFY_CLIENT_ID}
@@ -24,6 +29,11 @@ services:
       context: ../..
       dockerfile: widgets/spotify/client/Dockerfile
     restart: unless-stopped
+    labels:
+      nucleus.managed: "true"
+      nucleus.stack: "nucleus"
+      nucleus.role: "widget-client"
+      nucleus.app: "spotify"
     environment:
       API_TARGET: http://spotify-server:3002
     volumes:

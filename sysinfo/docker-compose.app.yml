@@ -3,6 +3,11 @@ services:
     build:
       context: ./server
     restart: unless-stopped
+    labels:
+      nucleus.managed: "true"
+      nucleus.stack: "nucleus"
+      nucleus.role: "widget-server"
+      nucleus.app: "sysinfo"
     # Host access so systeminformation reports the host, not the container.
     #  • pid: host        → host-wide CPU / memory / load
     #  • /sys mount       → CPU thermal sensors
