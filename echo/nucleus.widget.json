@@ -1,0 +1,11 @@
+{
+  "id": "echo",
+  "name": "Echo",
+  "description": "Quick chat — pick a conversation and message without leaving the dashboard",
+  "slot": "dashboard",
+  "sizes": ["small", "large"],
+  "defaultSize": "small",
+  "sizeDims": { "small": 320, "large": 560 },
+  "configurable": false,
+  "enabled": false
+}
