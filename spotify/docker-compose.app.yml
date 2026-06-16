@@ -7,8 +7,8 @@ services:
       PORT: 3002
       SPOTIFY_CLIENT_ID: ${SPOTIFY_CLIENT_ID}
       SPOTIFY_CLIENT_SECRET: ${SPOTIFY_CLIENT_SECRET}
-      SPOTIFY_REDIRECT_URI: ${SPOTIFY_REDIRECT_URI:-http://nucleus.home/api/spotify/callback}
-      SPOTIFY_SUCCESS_REDIRECT: ${SPOTIFY_SUCCESS_REDIRECT:-http://nucleus.home/spotify}
+      SPOTIFY_REDIRECT_URI: ${SPOTIFY_REDIRECT_URI:-https://nucleus.olm-altair.ts.net/api/spotify/callback}
+      SPOTIFY_SUCCESS_REDIRECT: ${SPOTIFY_SUCCESS_REDIRECT:-https://nucleus.olm-altair.ts.net/spotify}
     volumes:
       - ./server:/app
       - spotify_server_modules:/app/node_modules
