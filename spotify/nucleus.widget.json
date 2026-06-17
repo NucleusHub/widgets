@@ -20,8 +20,8 @@
     "env": {
       "SPOTIFY_CLIENT_ID": "${SPOTIFY_CLIENT_ID}",
       "SPOTIFY_CLIENT_SECRET": "${SPOTIFY_CLIENT_SECRET}",
-      "SPOTIFY_REDIRECT_URI": "${SPOTIFY_REDIRECT_URI:-https://nucleus.olm-altair.ts.net/api/spotify/callback}",
-      "SPOTIFY_SUCCESS_REDIRECT": "${SPOTIFY_SUCCESS_REDIRECT:-https://nucleus.olm-altair.ts.net/spotify}"
+      "SPOTIFY_REDIRECT_URI": "${SPOTIFY_REDIRECT_URI:-https://${NUCLEUS_HOST:-nucleus.olm-altair.ts.net}/api/spotify/callback}",
+      "SPOTIFY_SUCCESS_REDIRECT": "${SPOTIFY_SUCCESS_REDIRECT:-https://${NUCLEUS_HOST:-nucleus.olm-altair.ts.net}/spotify}"
     },
     "depends": [],
     "healthEndpoint": "/api/spotify/status"
