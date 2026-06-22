@@ -10,6 +10,8 @@ services:
       nucleus.app: "spotify"
     environment:
       PORT: 3002
+      # Must match the auth-server's secret so nucleus_token sessions verify.
+      JWT_SECRET: ${JWT_SECRET:-nucleus-jwt-secret}
       SPOTIFY_CLIENT_ID: ${SPOTIFY_CLIENT_ID}
       SPOTIFY_CLIENT_SECRET: ${SPOTIFY_CLIENT_SECRET}
       SPOTIFY_REDIRECT_URI: ${SPOTIFY_REDIRECT_URI:-https://${NUCLEUS_HOST:-nucleus.olm-altair.ts.net}/api/spotify/callback}

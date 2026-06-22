@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { requireAuth } from '../middleware/auth.js'
 
 const router = Router()
 
@@ -112,6 +113,12 @@ router.get('/callback', async (req, res) => {
     res.status(500).json({ error: err.message })
   }
 })
+
+// Everything below reads or controls the connected account, so it requires a
+// valid Nucleus session. `/login` and `/callback` above stay open: they're the
+// OAuth handshake, and the callback arrives as a cross-site redirect from
+// Spotify, which the SameSite=strict nucleus_token cookie wouldn't accompany.
+router.use(requireAuth)
 
 // GET /api/spotify/now-playing
 router.get('/now-playing', async (req, res) => {
