@@ -34,7 +34,6 @@ defineProps({
   width: 178px;
   background: var(--stat-bg);
   backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--stat-border);
   border-radius: 16px;
   padding: 12px 13px;

@@ -309,7 +309,6 @@ watch(isLarge, v => { if (v) dropdownOpen.value = false })
   width: 100%;
   background: var(--ew-bg);
   backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--ew-border);
   border-radius: 16px;
   box-shadow: var(--ew-shadow);
@@ -394,7 +393,7 @@ watch(isLarge, v => { if (v) dropdownOpen.value = false })
   position: absolute; left: 6px; right: 6px; top: calc(100% - 2px); z-index: 20;
   list-style: none; margin: 0; padding: 5px;
   max-height: 168px; overflow-y: auto;
-  background: var(--ew-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  background: var(--ew-bg); backdrop-filter: blur(20px);
   border: 1px solid var(--ew-border); border-radius: 12px;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
 }

@@ -166,7 +166,6 @@ watch([mode, folderId], () => { status.value = 'loading'; load() })
   width: 100%;
   background: var(--ow-bg);
   backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--ow-border);
   border-radius: 16px;
   box-shadow: var(--ow-shadow);
