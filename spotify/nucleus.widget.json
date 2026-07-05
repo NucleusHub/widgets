@@ -2,6 +2,11 @@
   "id": "spotify",
   "name": "Spotify",
   "description": "Now playing & playback controls",
+  "version": "0.1.0",
+  "manifestVersion": 1,
+  "compatibility": {
+    "nucleus": ">=0.1.0 <1.0.0"
+  },
   "route": "/spotify",
   "slot": "dashboard",
   "sizes": ["small", "medium", "large"],
