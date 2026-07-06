@@ -39,13 +39,20 @@ function title(chat) {
   return profilesById.value[otherMemberId(chat)]?.name || 'Direct message'
 }
 
-// Avatar helpers — self-contained (no core import). Mirrors AvatarCircle:
-// emoji if set, else initials, on the profile's colour.
+// Avatar helpers — self-contained (widgets are a separate build and can't import
+// the app's @core). Mirrors AvatarCircle: uploaded photo if any, else emoji,
+// else initials, on the profile's colour.
 function chatProfile(chat) { return chat ? profilesById.value[otherMemberId(chat)] : null }
 function senderProfile(m) { return m?.senderId ? profilesById.value[m.senderId] : null }
 function initials(name) {
   const p = (name || '?').trim().split(/\s+/)
   return (p.length >= 2 ? p[0][0] + p[1][0] : (name || '?').slice(0, 2)).toUpperCase()
+}
+// Same URL shape as core's avatarUrl(); cache-busted by imageUpdatedAt.
+function avatarImg(p) {
+  if (!p?.hasImage) return null
+  const v = p.imageUpdatedAt ? new Date(p.imageUpdatedAt).getTime() : ''
+  return `/api/auth/profiles/${p._id}/avatar${v ? `?v=${v}` : ''}`
 }
 
 async function api(path, opts = {}) {
@@ -208,7 +215,10 @@ watch(isLarge, v => { if (v) dropdownOpen.value = false })
       <ul v-if="isLarge" class="ew-sidebar">
         <li v-for="c in chats" :key="c.id">
           <button class="ew-chat-item" :class="{ active: c.id === activeId }" :title="title(c)" @click="select(c.id)">
-            <span class="ew-avatar" :style="{ background: chatProfile(c)?.color || '#64748b' }">{{ chatProfile(c)?.emoji || initials(title(c)) }}</span>
+            <span class="ew-avatar" :style="{ background: chatProfile(c)?.color || '#64748b' }">
+              <img v-if="avatarImg(chatProfile(c))" :src="avatarImg(chatProfile(c))" alt="" />
+              <template v-else>{{ chatProfile(c)?.emoji || initials(title(c)) }}</template>
+            </span>
             <span class="ew-chat-name">{{ title(c) }}</span>
             <span v-if="c.unread" class="ew-badge">{{ c.unread }}</span>
           </button>
@@ -219,7 +229,10 @@ watch(isLarge, v => { if (v) dropdownOpen.value = false })
         <!-- Small: dropdown selector -->
         <div v-if="!isLarge" class="ew-dropdown">
           <button class="ew-dd-toggle" @click="dropdownOpen = !dropdownOpen">
-            <span class="ew-avatar" :style="{ background: chatProfile(activeChat)?.color || '#64748b' }">{{ chatProfile(activeChat)?.emoji || initials(title(activeChat)) }}</span>
+            <span class="ew-avatar" :style="{ background: chatProfile(activeChat)?.color || '#64748b' }">
+              <img v-if="avatarImg(chatProfile(activeChat))" :src="avatarImg(chatProfile(activeChat))" alt="" />
+              <template v-else>{{ chatProfile(activeChat)?.emoji || initials(title(activeChat)) }}</template>
+            </span>
             <span class="ew-chat-name">{{ title(activeChat) }}</span>
             <span v-if="activeChat?.unread" class="ew-badge">{{ activeChat.unread }}</span>
             <svg class="ew-caret" :class="{ open: dropdownOpen }" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -249,7 +262,10 @@ watch(isLarge, v => { if (v) dropdownOpen.value = false })
               v-if="m.type !== 'system' && !isMine(m)"
               class="ew-avatar sm"
               :style="{ background: senderProfile(m)?.color || '#64748b' }"
-            >{{ senderProfile(m)?.emoji || initials(senderProfile(m)?.name || '?') }}</span>
+            >
+              <img v-if="avatarImg(senderProfile(m))" :src="avatarImg(senderProfile(m))" alt="" />
+              <template v-else>{{ senderProfile(m)?.emoji || initials(senderProfile(m)?.name || '?') }}</template>
+            </span>
             <a
               v-if="isAttachment(m)"
               class="ew-attach"
@@ -410,7 +426,9 @@ watch(isLarge, v => { if (v) dropdownOpen.value = false })
   width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
   color: #fff; font-size: 11px; font-weight: 600; line-height: 1;
+  overflow: hidden;
 }
+.ew-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .ew-avatar.sm { width: 22px; height: 22px; font-size: 9px; }
 
 .ew-bubble-row { display: flex; align-items: flex-end; gap: 6px; }
