@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useRegistry } from '@core/useRegistry.js'
+import { useAuth } from '@core/auth/useAuth.js'
 
 // Shared widget settings modal. Owns the modal chrome, renders the widget's own
 // Config.vue (passed in as `configComponent`), and — for widgets whose manifest
@@ -30,14 +31,23 @@ const props = defineProps({
 const emit = defineEmits(['update:config', 'update:visibility', 'save', 'cancel'])
 
 const { apps } = useRegistry()
+const { profile } = useAuth()
+const isAdmin = computed(() => profile.value?.role === 'admin')
 
 // Apps the widget can be surfaced in: installed + enabled for this user. Apps on
 // the manifest blacklist stay listed but are shown disabled ("Blocked by
 // manifest") rather than hidden, so it's clear why they can't be chosen. The hub
 // dashboard is always implied ("dashboard only"), so it isn't listed here.
+//
+// Two hosts are excluded from the picker regardless of manifest: Pulse (it owns
+// the widget system, so floating a widget "in Pulse" is meaningless) is never
+// offered, and the Admin Console is offered only to admins.
 const appOptions = computed(() => {
   const banned = new Set(props.blacklist || [])
-  return apps.value.map(a => ({ id: a.id, name: a.name || a.id, blocked: banned.has(a.id) }))
+  return apps.value
+    .filter(a => a.id !== 'pulse')
+    .filter(a => a.id !== 'admin' || isAdmin.value)
+    .map(a => ({ id: a.id, name: a.name || a.id, blocked: banned.has(a.id) }))
 })
 // Only non-blocked apps can actually be toggled / counted for "select all".
 const selectableOptions = computed(() => appOptions.value.filter(o => !o.blocked))
