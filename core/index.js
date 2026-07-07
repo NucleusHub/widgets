@@ -8,6 +8,9 @@ export { useWidgetVisibility }  from './composables/useWidgetVisibility.js'
 export { formatDuration } from './utils/time.js'
 export { createApiClient } from './utils/api.js'
 
+// Shared widget component resolver — render any widget by id from any app.
+export { resolveWidget, resolveWidgetConfig } from './resolve.js'
+
 // Components — import via 'core/components/Foo.vue' for tree-shaking,
 // or re-export here for convenience.
 export { default as WidgetCard }    from './components/WidgetCard.vue'

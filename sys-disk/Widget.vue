@@ -1,7 +1,7 @@
 <script setup>
 import StatTile from '../core/components/StatTile.vue'
 import StatRing from '../core/components/StatRing.vue'
-import { useSysInfo } from '@/composables/useSysInfo.js'
+import { useSysInfo } from '../core/composables/useSysInfo.js'
 
 defineProps({ size: { type: String, default: 'small' }, dark: { type: Boolean, default: true } })
 

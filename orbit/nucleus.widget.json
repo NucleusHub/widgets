@@ -2,7 +2,7 @@
   "id": "orbit",
   "name": "Orbit",
   "description": "Recent files or a chosen folder from Orbit",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "manifestVersion": 1,
   "compatibility": {
     "nucleus": ">=0.1.0 <1.0.0"
@@ -12,5 +12,7 @@
   "defaultSize": "medium",
   "sizeDims": { "small": 300, "medium": 300, "large": 300 },
   "configurable": true,
+  "crossApp": true,
+  "crossAppBlacklist": ["orbit"],
   "enabled": false
 }

@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { getStatus, getNowPlaying, play, pause, next, previous, seek } from '@/api/spotify.js'
+import { getStatus, getNowPlaying, play, pause, next, previous, seek } from './api/spotify.js'
 
 const props = defineProps({
   size: { type: String, default: 'medium' },

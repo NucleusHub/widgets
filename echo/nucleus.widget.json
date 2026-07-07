@@ -2,7 +2,7 @@
   "id": "echo",
   "name": "Echo",
   "description": "Quick chat — pick a conversation and message without leaving the dashboard",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "manifestVersion": 1,
   "compatibility": {
     "nucleus": ">=0.1.0 <1.0.0"
@@ -12,5 +12,7 @@
   "defaultSize": "small",
   "sizeDims": { "small": 320, "large": 560 },
   "configurable": false,
+  "crossApp": true,
+  "crossAppBlacklist": ["echo"],
   "enabled": false
 }
