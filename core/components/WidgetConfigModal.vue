@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useRegistry } from '@core/useRegistry.js'
 import { useAuth } from '@core/auth/useAuth.js'
+import TemplateModal from '@core/TemplateModal.vue'
 
 // Shared widget settings modal. Owns the modal chrome, renders the widget's own
 // Config.vue (passed in as `configComponent`), and — for widgets whose manifest
@@ -91,19 +92,21 @@ const hasBody = computed(() => !!props.configComponent || props.crossApp)
 </script>
 
 <template>
-  <Teleport to="body">
-    <Transition name="cfg-fade">
-      <div v-if="show" class="fixed inset-0 z-[200] flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-black/20 backdrop-blur-xl" @pointerdown.prevent="emit('cancel')" />
-        <div class="relative bg-white/25 dark:bg-white/8 border border-white/50 dark:border-white/10 rounded-2xl shadow-2xl w-full max-w-md flex flex-col overflow-hidden" style="max-height: 85vh">
-          <!-- Header -->
-          <div class="px-5 pt-5 pb-4 border-b border-white/30 dark:border-white/10 shrink-0">
-            <h2 class="text-base font-semibold text-slate-900 dark:text-white">{{ title }} settings</h2>
-            <p v-if="description" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ description }}</p>
-          </div>
-
+  <TemplateModal
+    :show="show"
+    header
+    footer
+    size="md"
+    :title="`${title} settings`"
+    :description="description"
+    confirm-label="Save"
+    cancel-label="Cancel"
+    body-class="px-5 py-4"
+    @confirm="emit('save')"
+    @cancel="emit('cancel')"
+  >
           <!-- Body -->
-          <div class="flex-1 overflow-y-auto px-5 py-4 min-h-0 flex flex-col gap-5">
+          <div class="flex flex-col gap-5">
             <!-- The widget's own Config.vue -->
             <component
               :is="configComponent"
@@ -182,22 +185,7 @@ const hasBody = computed(() => !!props.configComponent || props.crossApp)
 
             <p v-if="!hasBody" class="text-sm text-slate-500 dark:text-slate-400">This widget has no settings.</p>
           </div>
-
-          <!-- Footer -->
-          <div class="px-5 py-4 border-t border-white/30 dark:border-white/10 flex gap-2 justify-end shrink-0">
-            <button
-              @click="emit('cancel')"
-              class="cursor-pointer px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition-colors"
-            >Cancel</button>
-            <button
-              @click="emit('save')"
-              class="cursor-pointer px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg transition-colors"
-            >Save</button>
-          </div>
-        </div>
-      </div>
-    </Transition>
-  </Teleport>
+  </TemplateModal>
 </template>
 
 <style scoped>
