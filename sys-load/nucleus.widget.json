@@ -8,6 +8,7 @@
     "nucleus": ">=0.1.0 <1.0.0"
   },
   "slot": "nucleus",
+  "orbitAngle": -135,
   "dependsOn": "sysinfo",
   "movable": false,
   "configurable": false,
