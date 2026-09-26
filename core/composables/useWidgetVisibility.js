@@ -7,7 +7,6 @@ function load() {
   catch { return [] }
 }
 
-// Module-level singleton so all callers share the same reactive state
 const hiddenIds = ref(new Set(load()))
 
 function save() {

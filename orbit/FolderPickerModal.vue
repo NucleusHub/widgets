@@ -1,9 +1,6 @@
 <script setup>
 import { ref, computed, watch, onUnmounted } from 'vue'
 
-// Folder tree picker, modeled on Orbit's MoveModal but standalone (fetches the
-// flat folder list straight from Orbit's API). Lets you pick any folder, or
-// "Home" for the root level.
 const props = defineProps({
   show:      { type: Boolean, default: false },
   currentId: { type: String, default: null },
@@ -78,7 +75,6 @@ function toggle(id) {
             <div v-else-if="error" class="px-5 py-4 text-sm text-red-500">Failed to load folders: {{ error }}</div>
 
             <template v-else>
-              <!-- Home / root -->
               <button
                 class="w-full flex items-center gap-2 px-4 py-2 text-sm cursor-pointer transition-colors"
                 :class="currentId === null

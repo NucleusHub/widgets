@@ -10,10 +10,7 @@ app.use(cors())
 
 const gb = (bytes) => Math.round((bytes / 1e9) * 10) / 10
 
-// ── Host network throughput ──────────────────────────────────────────────────
-// systeminformation reads the *container's* net namespace (idle veth) and
-// returns null rates on the first sample. Instead read the host's cumulative
-// byte counters (PID 1 = host init, thanks to `pid: host`) and diff them.
+// systeminformation sees the container's net namespace, so diff the host's counters via PID 1.
 const NETDEV_PATHS = ['/proc/1/net/dev', '/host/proc/1/net/dev', '/proc/net/dev']
 const VIRTUAL_IFACE = /^(lo|docker|veth|br-|virbr|cni|flannel|tun|tap|kube|cali)/
 
@@ -28,19 +25,15 @@ function readNetDev() {
         const iface = line.slice(0, i).trim()
         if (VIRTUAL_IFACE.test(iface)) continue
         const cols = line.slice(i + 1).trim().split(/\s+/).map(Number)
-        out[iface] = { rx: cols[0], tx: cols[8] } // bytes received / transmitted
+        out[iface] = { rx: cols[0], tx: cols[8] }
       }
       if (Object.keys(out).length) return out
-    } catch {
-      /* try next path */
-    }
+    } catch {}
   }
   return null
 }
 
-// Host local IP. The container only has its docker address, so read the host's
-// local addresses from fib_trie (host net namespace via PID 1) and prefer a LAN
-// range over the docker bridge (172.x).
+// The container only has its docker address, so read host addresses from PID 1's fib_trie.
 const FIBTRIE_PATHS = ['/proc/1/net/fib_trie', '/host/proc/1/net/fib_trie', '/proc/net/fib_trie']
 function localIp() {
   for (const path of FIBTRIE_PATHS) {
@@ -59,14 +52,12 @@ function localIp() {
         ips.find((ip) => !ip.startsWith('172.')) ||
         ips[0]
       if (pick) return pick
-    } catch {
-      /* try next path */
-    }
+    } catch {}
   }
   return null
 }
 
-let prevNet = null // { t, ifaces }
+let prevNet = null
 
 function networkRate() {
   const now = Date.now()
@@ -75,7 +66,6 @@ function networkRate() {
   let upMBs = 0
   let iface = '—'
   if (cur) {
-    // Busiest physical interface = the primary link.
     iface = Object.keys(cur).sort((a, b) => cur[b].rx + cur[b].tx - (cur[a].rx + cur[a].tx))[0] || '—'
     if (prevNet && cur[iface] && prevNet.ifaces[iface]) {
       const dt = (now - prevNet.t) / 1000
@@ -91,7 +81,6 @@ function networkRate() {
 
 app.get('/api/sysinfo/health', (_, res) => res.json({ ok: true }))
 
-// One snapshot of everything the system widgets need.
 app.get('/api/sysinfo', async (_, res) => {
   try {
     const [load, mem, fs, temp, gfx, time] = await Promise.all([
@@ -103,8 +92,6 @@ app.get('/api/sysinfo', async (_, res) => {
       si.time(),
     ])
 
-    // Primary disk: the host root (bind-mounted at /host) if available, else
-    // the container root, else the largest volume.
     const disks = (fs || []).filter((d) => d.size > 0)
     const root =
       disks.find((d) => d.mount === '/host') ||
@@ -112,7 +99,6 @@ app.get('/api/sysinfo', async (_, res) => {
       disks.sort((a, b) => b.size - a.size)[0] ||
       {}
 
-    // First GPU that reports utilisation or temperature.
     const gpu = (gfx?.controllers || []).find(
       (c) => c.utilizationGpu != null || c.temperatureGpu != null
     )

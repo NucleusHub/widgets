@@ -4,24 +4,12 @@ import { useRegistry } from '@core/useRegistry.js'
 import { useTheme } from '@core/useTheme.js'
 import { resolveWidget } from '../resolve.js'
 
-// Renders Pulse widgets that the user chose to surface inside *this* app. Each
-// widget gets a small, always-visible move handle and can be dragged; its
-// position is saved PER APP (`appPositions[appId]` in Pulse state), independent
-// of the hub-dashboard position and of every other app.
-//
-// The whole widget system is Pulse-owned: if Pulse isn't installed/enabled for
-// this user, hasApp('pulse') is false and this renders nothing at all — no
-// fetch, no markup. Mounted once in core/auth/AuthGuard.vue (the component every
-// app wraps in), so apps never import widget code themselves. No-op on the hub.
-
 const SIZE_DIMS = { small: 280, medium: 360, large: 480 }
 const MOBILE_BREAKPOINT = 768
 
 const { apps, widgets: manifests, loading } = useRegistry()
 const { isDark } = useTheme()
 
-// This bundle's app id, from the Vite base path (base '/orbit' → the app whose
-// route is '/orbit'). Mirrors core/auth/AuthGuard.vue. Null on the hub (base '/').
 const basePath = (import.meta.env.BASE_URL || '/').replace(/\/+$/, '') || '/'
 const currentApp = computed(() =>
   basePath === '/' ? null : apps.value.find(a => (a.route || '').replace(/\/+$/, '') === basePath) || null,
@@ -40,8 +28,6 @@ onUnmounted(() => {
   clearTimeout(saveTimer)
 })
 
-// Full saved widget state (positions, sizes, config, visibility, appPositions).
-// Fetched from Pulse only once we know Pulse is present and which app we're in.
 const raw = ref([])
 let fetched = false
 async function fetchState() {
@@ -50,15 +36,12 @@ async function fetchState() {
   try {
     const res = await fetch('/api/pulse/dashboard', { credentials: 'include' })
     if (res.ok) raw.value = (await res.json())?.widgets ?? []
-  } catch { /* Pulse unreachable — render nothing */ }
+  } catch {}
 }
 watch([active, loading], () => {
   if (active.value && !loading.value) fetchState()
 }, { immediate: true })
 
-// Widgets to render here — returns { s, m } where `s` is the LIVE reactive state
-// object (so drags mutate it in place) and `m` is its manifest. Manifest-driven:
-// the widget must opt into cross-app display and this app must not be blacklisted.
 const visibleWidgets = computed(() => {
   if (!active.value || isMobile.value) return []
   const appId = currentApp.value.id
@@ -68,14 +51,13 @@ const visibleWidgets = computed(() => {
     if (s.enabled === false) continue
     const v = s.visibility
     if (!(v?.scope === 'apps' && Array.isArray(v.apps) && v.apps.includes(appId))) continue
-    const m = mById.get(s.id) // absent → globally/per-user disabled
+    const m = mById.get(s.id)
     if (!m || m.crossApp !== true || (m.crossAppBlacklist || []).includes(appId)) continue
     out.push({ s, m })
   }
   return out
 })
 
-// Effective position in this app: per-app override → hub position → default.
 function posOf(s) {
   const appId = currentApp.value?.id
   return (appId && s.appPositions && s.appPositions[appId]) || s.position || { x: 24, y: 24 }
@@ -84,7 +66,6 @@ function widthOf(s, m) {
   return m?.sizeDims?.[s.size] ?? SIZE_DIMS[s.size] ?? 360
 }
 
-// ── Drag (per-app position) ──────────────────────────────────────────────────
 const draggingId = ref(null)
 let dragOrigin = null
 
@@ -114,8 +95,6 @@ function endDrag() {
   persist()
 }
 
-// Persist a widget's own config edits back to Pulse (debounced). Positions and
-// everything else are preserved because we write back the whole fetched array.
 let saveTimer = null
 function onWidgetConfig(id, cfg) {
   const s = raw.value.find(x => x.id === id)
@@ -132,13 +111,11 @@ async function persist() {
       credentials: 'include',
       body: JSON.stringify({ widgets: raw.value }),
     })
-  } catch { /* best-effort */ }
+  } catch {}
 }
 </script>
 
 <template>
-  <!-- Full-screen, click-through canvas; only the widget cards + handles capture
-       pointer events, so the host app stays fully interactive underneath. -->
   <div v-if="visibleWidgets.length" class="fixed inset-0 z-40 pointer-events-none">
     <div
       v-for="{ s, m } in visibleWidgets"
@@ -151,7 +128,6 @@ async function persist() {
         width: widthOf(s, m) + 'px',
       }"
     >
-      <!-- Always-visible move handle (top-left corner) — small Pulse-style grip. -->
       <button
         class="wo-move"
         :class="[isDark ? 'wo-move--dark' : 'wo-move--light', { 'wo-move--active': draggingId === s.id }]"

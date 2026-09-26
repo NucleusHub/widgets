@@ -3,8 +3,8 @@ import { computed } from 'vue'
 
 const props = defineProps({
   label:   { type: String, required: true },
-  value:   { type: Number, required: true }, // 0–100, drives the bar width
-  display: { type: String, default: null },   // text shown on the right (falls back to `${value}%`)
+  value:   { type: Number, required: true },
+  display: { type: String, default: null },
   color:   { type: String, default: '#818cf8' },
 })
 

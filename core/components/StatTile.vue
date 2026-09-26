@@ -1,7 +1,4 @@
 <script setup>
-// Small glass tile used by the system-stat widgets. Self-contained styling so
-// it renders correctly when mounted inside the hub (no external widget.css).
-// Defines theme tokens (--stat-*) that cascade into StatBar / StatRing.
 defineProps({
   title:  { type: String, required: true },
   accent: { type: String, default: '#818cf8' },
@@ -22,7 +19,6 @@ defineProps({
 
 <style scoped>
 .stat-tile {
-  /* Dark theme tokens (default) */
   --stat-bg: rgba(12, 12, 24, 0.82);
   --stat-border: rgba(255, 255, 255, 0.09);
   --stat-shadow: 0 14px 44px rgba(0, 0, 0, 0.5), 0 0 0 0.5px rgba(255, 255, 255, 0.04) inset;

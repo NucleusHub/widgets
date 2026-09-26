@@ -1,8 +1,6 @@
 <template>
-  <!-- Loading -->
   <WidgetLoading v-if="status === 'loading'" :message="loadingMessage" />
 
-  <!-- Error (generic fallback — widgets can override via the 'error' slot) -->
   <div v-else-if="status === 'error'" class="widget-card flex flex-col items-center gap-3 py-8 text-center">
     <slot name="error">
       <svg class="w-8 h-8" style="color:rgba(248,113,113,0.75)" fill="none" viewBox="0 0 24 24"
@@ -14,7 +12,6 @@
     </slot>
   </div>
 
-  <!-- Ready / unauthenticated — widget decides what to render -->
   <slot v-else />
 </template>
 

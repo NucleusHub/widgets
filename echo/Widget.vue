@@ -6,15 +6,11 @@ const props = defineProps({
   dark:   { type: Boolean, default: true },
   config: { type: Object, default: () => ({}) },
 })
-// Emits the widget's persisted config back to the dashboard (saved to DB). Used
-// to remember which chat is open across refreshes.
 const emit = defineEmits(['update:config'])
 
-// Large: chats live in an always-visible sidebar. Small: chats collapse into a
-// dropdown above the message box.
 const isLarge = computed(() => props.size === 'large')
 
-const status = ref('loading') // loading | ready | error | empty
+const status = ref('loading')
 const chats = ref([])
 const profilesById = ref({})
 const meId = ref(null)
@@ -26,7 +22,7 @@ const sending = ref(false)
 const dropdownOpen = ref(false)
 const scroller = ref(null)
 const inputEl = ref(null)
-const appIcons = ref({}) // app id -> inline SVG markup, for attachment chips
+const appIcons = ref({})
 
 const activeChat = computed(() => chats.value.find(c => c.id === activeId.value) || null)
 
@@ -39,16 +35,12 @@ function title(chat) {
   return profilesById.value[otherMemberId(chat)]?.name || 'Direct message'
 }
 
-// Avatar helpers — self-contained (widgets are a separate build and can't import
-// the app's @core). Mirrors AvatarCircle: uploaded photo if any, else emoji,
-// else initials, on the profile's colour.
 function chatProfile(chat) { return chat ? profilesById.value[otherMemberId(chat)] : null }
 function senderProfile(m) { return m?.senderId ? profilesById.value[m.senderId] : null }
 function initials(name) {
   const p = (name || '?').trim().split(/\s+/)
   return (p.length >= 2 ? p[0][0] + p[1][0] : (name || '?').slice(0, 2)).toUpperCase()
 }
-// Same URL shape as core's avatarUrl(); cache-busted by imageUpdatedAt.
 function avatarImg(p) {
   if (!p?.hasImage) return null
   const v = p.imageUpdatedAt ? new Date(p.imageUpdatedAt).getTime() : ''
@@ -66,8 +58,6 @@ async function loadChats() {
   if (!chats.value.length) { status.value = 'empty'; return }
   status.value = 'ready'
   if (!activeId.value) {
-    // Reopen the chat saved in our widget config, if it still exists; else the
-    // first chat. Don't persist this initial pick — only user choices.
     const saved = props.config?.chatId
     const initial = saved && chats.value.some(c => c.id === saved) ? saved : chats.value[0].id
     await select(initial, false)
@@ -77,8 +67,6 @@ async function loadChats() {
 async function select(id, persist = true) {
   activeId.value = id
   dropdownOpen.value = false
-  // Remember the open chat in the widget config (saved to DB) so a refresh
-  // reopens it. Only on user selection, and only when it actually changes.
   if (persist && id !== props.config?.chatId) {
     emit('update:config', { ...props.config, chatId: id })
   }
@@ -111,33 +99,22 @@ async function send() {
     messages.value = [...messages.value, msg]
     text.value = ''
     await scrollToBottom()
-  } catch {
-    /* keep the text so the user can retry */
-  } finally {
+  } catch {} finally {
     sending.value = false
-    // Re-focus the field after sending (the input is disabled mid-send, so wait
-    // for it to re-enable) so you can keep typing without clicking back in.
     nextTick(() => inputEl.value?.focus())
   }
 }
 
-// Text and system messages render their text inline (the full embed renderers
-// live in /core for the Echo app itself).
 function preview(m) {
   return m.payload?.text ?? ''
 }
 const isMine = m => m.senderId && m.senderId === meId.value
 
-// App-typed messages (orbit.file, goal.update, watchlist.item, …) render as a
-// compact chip: the source app's icon + a short label pulled from the payload.
-// The chip links into the Echo app, opening that chat and highlighting it.
 const isAttachment = m => m.type !== 'text' && m.type !== 'system'
 const attachLabel = m => m.payload?.name || m.payload?.title || 'Attachment'
 const appIcon = id => appIcons.value[id] || ''
 const chatLink = m => `/echo/c/${m.chatId}?msg=${m.id}`
 
-// Split message text into plain/link segments on http(s) URLs (mirrors
-// core/echo/linkify.js; the widget stays import-free for portability).
 const URL_RE = /(https?:\/\/[^\s<]+)/g
 const TRAILING = /[.,!?;:'")\]}]+$/
 function linkify(text) {
@@ -158,7 +135,6 @@ function linkify(text) {
   return parts
 }
 
-// Lightweight polling — no socket dependency inside the widget bundle.
 let chatTimer = null
 let msgTimer = null
 onMounted(async () => {
@@ -169,8 +145,6 @@ onMounted(async () => {
         .then(r => r.ok ? r.json() : [])
         .then(list => { profilesById.value = Object.fromEntries(list.map(p => [String(p._id), p])) })
         .catch(() => {}),
-      // App icons (id -> inline SVG) for attachment chips, from the same registry
-      // the dashboard uses.
       fetch('/api/registry/apps')
         .then(r => r.ok ? r.json() : [])
         .then(list => { appIcons.value = Object.fromEntries(list.map(a => [a.id, a.iconSvg])) })
@@ -186,13 +160,11 @@ onMounted(async () => {
 })
 onUnmounted(() => { clearInterval(chatTimer); clearInterval(msgTimer) })
 
-// Closing the dropdown when switching to large (where it's always open).
 watch(isLarge, v => { if (v) dropdownOpen.value = false })
 </script>
 
 <template>
   <div class="echo-w" :class="{ light: !dark, large: isLarge }">
-    <!-- Header -->
     <a class="ew-head" href="/echo/" title="Open Echo">
       <span class="ew-logo">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
@@ -209,9 +181,7 @@ watch(isLarge, v => { if (v) dropdownOpen.value = false })
     <div v-else-if="status === 'error'" class="ew-msg">Couldn't reach Echo.</div>
     <div v-else-if="status === 'empty'" class="ew-msg">No chats yet — open Echo to start one.</div>
 
-    <!-- Body: small = dropdown above box; large = sidebar beside box -->
     <div v-else class="ew-body">
-      <!-- Large: persistent sidebar -->
       <ul v-if="isLarge" class="ew-sidebar">
         <li v-for="c in chats" :key="c.id">
           <button class="ew-chat-item" :class="{ active: c.id === activeId }" :title="title(c)" @click="select(c.id)">
@@ -226,7 +196,6 @@ watch(isLarge, v => { if (v) dropdownOpen.value = false })
       </ul>
 
       <div class="ew-pane">
-        <!-- Small: dropdown selector -->
         <div v-if="!isLarge" class="ew-dropdown">
           <button class="ew-dd-toggle" @click="dropdownOpen = !dropdownOpen">
             <span class="ew-avatar" :style="{ background: chatProfile(activeChat)?.color || '#64748b' }">
@@ -249,7 +218,6 @@ watch(isLarge, v => { if (v) dropdownOpen.value = false })
           </ul>
         </div>
 
-        <!-- Messages -->
         <div ref="scroller" class="ew-messages">
           <div v-if="!messages.length" class="ew-empty">No messages yet</div>
           <div
@@ -289,7 +257,6 @@ watch(isLarge, v => { if (v) dropdownOpen.value = false })
           </div>
         </div>
 
-        <!-- Composer -->
         <form class="ew-composer" @submit.prevent="send">
           <input
             ref="inputEl"
@@ -333,7 +300,6 @@ watch(isLarge, v => { if (v) dropdownOpen.value = false })
   line-height: normal;
   display: flex;
   flex-direction: column;
-  /* Fixed overall height per size; inner regions scroll, the widget doesn't grow. */
   height: 360px;
 }
 .echo-w.large { height: 460px; }
@@ -365,12 +331,9 @@ watch(isLarge, v => { if (v) dropdownOpen.value = false })
   flex: 1; padding: 0 14px; font-size: 12px; color: var(--ew-dim); text-align: center;
 }
 
-/* Body fills the remaining height under the header; inner regions scroll. */
 .ew-body { display: flex; flex: 1; min-height: 0; }
-/* small: stacked (dropdown handled inside pane); large: sidebar + pane row */
 .ew-pane { display: flex; flex-direction: column; flex: 1; min-width: 0; min-height: 0; }
 
-/* Sidebar (large only) — stretches to the body height and scrolls internally. */
 .ew-sidebar {
   list-style: none; margin: 0; padding: 6px;
   width: 158px; flex-shrink: 0;
@@ -396,7 +359,6 @@ watch(isLarge, v => { if (v) dropdownOpen.value = false })
   background: var(--ew-accent); color: #fff; font-size: 10px; font-weight: 600; border-radius: 9px;
 }
 
-/* Dropdown (small only) */
 .ew-dropdown { position: relative; padding: 6px; border-bottom: 1px solid var(--ew-border); }
 .ew-dd-toggle {
   width: 100%; display: flex; align-items: center; gap: 6px;
@@ -414,7 +376,6 @@ watch(isLarge, v => { if (v) dropdownOpen.value = false })
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
 }
 
-/* Messages */
 .ew-messages {
   flex: 1; min-height: 0; overflow-y: auto; padding: 10px;
   display: flex; flex-direction: column; gap: 6px;
@@ -445,8 +406,6 @@ watch(isLarge, v => { if (v) dropdownOpen.value = false })
   background: transparent; color: var(--ew-dim); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;
 }
 
-/* Attachment chip: a link into Echo (opens + highlights the message). Underlined
-   light-blue; the source-app icon inherits that colour via currentColor. */
 .ew-attach {
   max-width: 80%; display: inline-flex; align-items: center; gap: 6px;
   padding: 7px 11px; border-radius: 14px; background: var(--ew-them);
@@ -458,14 +417,11 @@ watch(isLarge, v => { if (v) dropdownOpen.value = false })
 .ew-attach-icon { width: 15px; height: 15px; flex-shrink: 0; display: inline-flex; line-height: 0; }
 .ew-attach-icon :deep(svg) { width: 100%; height: 100%; display: block; }
 
-/* Auto-detected URLs inside message text. */
 .ew-link { color: #38bdf8; text-decoration: underline; word-break: break-all; }
 .ew-link:hover { color: #7dd3fc; }
-/* On the accent (own-message) bubble, sky-400 is low-contrast — go lighter. */
 .ew-bubble-row.mine .ew-link { color: #bae6fd; }
 .ew-bubble-row.mine .ew-link:hover { color: #e0f2fe; }
 
-/* Composer */
 .ew-composer {
   display: flex; align-items: center; gap: 7px;
   padding: 8px; border-top: 1px solid var(--ew-border);

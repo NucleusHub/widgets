@@ -9,10 +9,6 @@ services:
       nucleus.role: "widget-server"
       nucleus.app: "sysinfo"
     # Host access so systeminformation reports the host, not the container.
-    #  • pid: host        → host-wide CPU / memory / load
-    #  • /sys mount       → CPU thermal sensors
-    #  • / mounted at /host → host root disk usage (see index.js disk logic)
-    # GPU / temperature accuracy still depends on host drivers being present.
     pid: host
     privileged: true
     environment:

@@ -7,9 +7,7 @@ defineProps({ size: { type: String, default: 'small' }, dark: { type: Boolean, d
 
 const { data } = useSysInfo()
 
-// Throughput mapped onto the bar scale against a 50 MB/s ceiling.
 const scale = (mbps) => ((mbps ?? 0) / 50) * 100
-// Adaptive units — idle traffic is KB/s, not MB/s.
 const rate = (mbps) => {
   const v = mbps ?? 0
   if (v < 1) return `${Math.round(v * 1000)} KB/s`

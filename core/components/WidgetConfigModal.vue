@@ -4,29 +4,14 @@ import { useRegistry } from '@core/useRegistry.js'
 import { useAuth } from '@core/auth/useAuth.js'
 import TemplateModal from '@core/TemplateModal.vue'
 
-// Shared widget settings modal. Owns the modal chrome, renders the widget's own
-// Config.vue (passed in as `configComponent`), and — for widgets whose manifest
-// opts in (`crossApp: true`) — adds the built-in "Show in" section that lets the
-// user float the widget inside other apps. Everything here is manifest-driven:
-// whether the section appears (crossApp) and which apps are offered (installed
-// apps minus the widget's `crossAppBlacklist`). No app ids are hardcoded.
-//
-// Kept free of Pulse/hub imports so it can live in the shared widget package;
-// the host app wires state + persistence (see hub/src/components/WidgetConfigModal.vue).
 const props = defineProps({
   show:            { type: Boolean, default: false },
   title:           { type: String, default: 'Widget' },
   description:     { type: String, default: '' },
-  // The widget's own Config.vue (already resolved), or null when it ships none.
   configComponent: { type: [Object, Function], default: null },
-  // The widget's own config object (v-model:config).
   config:          { type: Object, default: () => ({}) },
-  // { scope: 'dashboard' | 'apps', apps: string[] } (v-model:visibility).
   visibility:      { type: Object, default: () => ({ scope: 'dashboard', apps: [] }) },
-  // From the widget manifest: may it be shown in other apps at all?
   crossApp:        { type: Boolean, default: false },
-  // From the widget manifest: app ids it must never be shown in (e.g. the Echo
-  // widget on top of the Echo app). Filtered out of the picker entirely.
   blacklist:       { type: Array, default: () => [] },
 })
 const emit = defineEmits(['update:config', 'update:visibility', 'save', 'cancel'])
@@ -35,14 +20,6 @@ const { apps } = useRegistry()
 const { profile } = useAuth()
 const isAdmin = computed(() => profile.value?.role === 'admin')
 
-// Apps the widget can be surfaced in: installed + enabled for this user. Apps on
-// the manifest blacklist stay listed but are shown disabled ("Blocked by
-// manifest") rather than hidden, so it's clear why they can't be chosen. The hub
-// dashboard is always implied ("dashboard only"), so it isn't listed here.
-//
-// Two hosts are excluded from the picker regardless of manifest: Pulse (it owns
-// the widget system, so floating a widget "in Pulse" is meaningless) is never
-// offered, and the Admin Console is offered only to admins.
 const appOptions = computed(() => {
   const banned = new Set(props.blacklist || [])
   return apps.value
@@ -50,7 +27,6 @@ const appOptions = computed(() => {
     .filter(a => a.id !== 'admin' || isAdmin.value)
     .map(a => ({ id: a.id, name: a.name || a.id, blocked: banned.has(a.id) }))
 })
-// Only non-blocked apps can actually be toggled / counted for "select all".
 const selectableOptions = computed(() => appOptions.value.filter(o => !o.blocked))
 
 const scope = computed({
@@ -65,21 +41,19 @@ function emitApps(list) {
   emit('update:visibility', { scope: props.visibility?.scope || 'apps', apps: list })
 }
 function toggleApp(id) {
-  if ((props.blacklist || []).includes(id)) return // blocked — not toggleable
+  if ((props.blacklist || []).includes(id)) return
   const current = new Set(props.visibility?.apps || [])
   if (current.has(id)) current.delete(id)
   else current.add(id)
   emitApps([...current])
 }
 
-// "Select all" — resolves to every currently-selectable (non-blocked) app.
 const selectedCount = computed(() => selectableOptions.value.filter(o => isAppOn(o.id)).length)
 const allSelected = computed(() => selectableOptions.value.length > 0 && selectedCount.value === selectableOptions.value.length)
 const someSelected = computed(() => selectedCount.value > 0 && !allSelected.value)
 function toggleAll() {
   const selectable = new Set(selectableOptions.value.map(o => o.id))
   if (allSelected.value) {
-    // Clear only the selectable ids; leave anything else in the saved list alone.
     emitApps((props.visibility?.apps || []).filter(id => !selectable.has(id)))
   } else {
     const merged = new Set([...(props.visibility?.apps || []), ...selectable])
@@ -87,7 +61,6 @@ function toggleAll() {
   }
 }
 
-// Whether there's anything to show in the body at all.
 const hasBody = computed(() => !!props.configComponent || props.crossApp)
 </script>
 
@@ -105,9 +78,7 @@ const hasBody = computed(() => !!props.configComponent || props.crossApp)
     @confirm="emit('save')"
     @cancel="emit('cancel')"
   >
-          <!-- Body -->
           <div class="flex flex-col gap-5">
-            <!-- The widget's own Config.vue -->
             <component
               :is="configComponent"
               v-if="configComponent"
@@ -115,11 +86,9 @@ const hasBody = computed(() => !!props.configComponent || props.crossApp)
               @update:modelValue="emit('update:config', $event)"
             />
 
-            <!-- Built-in "Show in" — only for widgets whose manifest allows it ── -->
             <div v-if="crossApp" class="flex flex-col gap-2.5">
               <h3 class="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/35">Show in</h3>
 
-              <!-- Dashboard only -->
               <button
                 type="button"
                 class="text-left rounded-xl border px-3.5 py-2.5 transition-colors cursor-pointer"
@@ -132,7 +101,6 @@ const hasBody = computed(() => !!props.configComponent || props.crossApp)
                 <p class="text-xs text-slate-500 dark:text-white/45 mt-0.5">Shown on the hub dashboard, nowhere else.</p>
               </button>
 
-              <!-- Dashboard + other apps -->
               <button
                 type="button"
                 class="text-left rounded-xl border px-3.5 py-2.5 transition-colors cursor-pointer"
@@ -145,12 +113,10 @@ const hasBody = computed(() => !!props.configComponent || props.crossApp)
                 <p class="text-xs text-slate-500 dark:text-white/45 mt-0.5">Also floats inside the apps you pick below.</p>
               </button>
 
-              <!-- App picker -->
               <div v-if="scope === 'apps'" class="flex flex-col gap-0.5 pl-1">
                 <p v-if="!appOptions.length" class="text-xs text-slate-400 dark:text-white/40 py-1">No other apps are available.</p>
 
                 <template v-else>
-                  <!-- Select all -->
                   <label class="flex items-center gap-2.5 rounded-lg px-2 py-1.5 cursor-pointer hover:bg-slate-100/60 dark:hover:bg-white/5">
                     <input type="checkbox" class="sr-only peer" :checked="allSelected" @change="toggleAll" />
                     <span
@@ -192,7 +158,6 @@ const hasBody = computed(() => !!props.configComponent || props.crossApp)
 .cfg-fade-enter-active, .cfg-fade-leave-active { transition: opacity 0.15s ease; }
 .cfg-fade-enter-from, .cfg-fade-leave-to { opacity: 0; }
 
-/* Prettier checkbox — soft-rounded square (not a circle), springs on toggle. */
 .wc-box {
   width: 20px;
   height: 20px;
@@ -206,7 +171,7 @@ const hasBody = computed(() => !!props.configComponent || props.crossApp)
 }
 .wc-box svg { width: 13px; height: 13px; color: #fff; }
 .wc-off {
-  border-color: rgb(203 213 225);           /* slate-300 */
+  border-color: rgb(203 213 225);
   background: rgba(255, 255, 255, 0.5);
 }
 :global(.dark) .wc-off {
@@ -214,15 +179,14 @@ const hasBody = computed(() => !!props.configComponent || props.crossApp)
   background: rgba(255, 255, 255, 0.05);
 }
 .wc-on, .wc-mixed {
-  border-color: #6366f1;                     /* indigo-500 */
+  border-color: #6366f1;
   background: #6366f1;
 }
-/* Blacklisted by the widget manifest — visible but not selectable. */
 .wc-blocked {
-  border-color: rgb(203 213 225);            /* slate-300 */
+  border-color: rgb(203 213 225);
   background: rgba(148, 163, 184, 0.12);
 }
-.wc-blocked svg { width: 12px; height: 12px; color: rgb(148 163 184); }  /* slate-400 */
+.wc-blocked svg { width: 12px; height: 12px; color: rgb(148 163 184); }
 :global(.dark) .wc-blocked {
   border-color: rgba(255, 255, 255, 0.15);
   background: rgba(255, 255, 255, 0.04);
@@ -234,7 +198,6 @@ const hasBody = computed(() => !!props.configComponent || props.crossApp)
   border-radius: 2px;
   background: #fff;
 }
-/* Keyboard focus ring via the visually-hidden peer input. */
 .peer:focus-visible + .wc-box {
   outline: 2px solid rgba(99, 102, 241, 0.6);
   outline-offset: 2px;

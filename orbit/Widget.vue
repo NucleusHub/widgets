@@ -7,23 +7,19 @@ const props = defineProps({
   config: { type: Object, default: () => ({}) },
 })
 
-// Config: { mode: 'recent' | 'folder', folderId, folderName }
 const mode     = computed(() => props.config?.mode === 'folder' ? 'folder' : 'recent')
 const folderId = computed(() => props.config?.folderId ?? null)
 
-// Width is constant across sizes (manifest sizeDims); size only controls how
-// many rows are visible. The body is a fixed height of N.5 rows so a half row
-// peeks to signal it scrolls. ROW_H must match the .ow-row height in CSS.
+// ROW_H must match the .ow-row height in CSS.
 const ROW_H = 46
 const VISIBLE_ROWS = { small: 2.5, medium: 3.5, large: 5.5 }
 const bodyHeight = computed(() => Math.round((VISIBLE_ROWS[props.size] ?? VISIBLE_ROWS.medium) * ROW_H))
 
-// Fetch comfortably more than is visible so there's something to scroll.
 const FETCH_LIMIT = 25
 const MAX_ITEMS = 50
 
-const status = ref('loading') // loading | ready | locked | error
-const items  = ref([])        // { type:'file'|'folder', id, name, folderId, path, size }
+const status = ref('loading')
+const items  = ref([])
 
 const subtitle = computed(() => {
   if (mode.value === 'folder') return props.config?.folderName || 'Folder'
@@ -39,7 +35,6 @@ function formatBytes(bytes) {
   return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`
 }
 
-// Per-file second line: folder path (recent mode) + file size.
 function fileMeta(it) {
   const parts = []
   if (mode.value === 'recent') parts.push(it.path && it.path.length ? it.path.join(' / ') : 'Home')
@@ -78,7 +73,6 @@ async function load() {
   }
 }
 
-// Clicking an item deep-links into Orbit (separate SPA under /orbit/).
 function open(item) {
   if (item.type === 'folder') {
     window.location.href = `/orbit/?folder=${item.id}`
@@ -94,13 +88,11 @@ onMounted(() => {
   timer = setInterval(load, 15000)
 })
 onUnmounted(() => clearInterval(timer))
-// Re-fetch immediately when settings change.
 watch([mode, folderId], () => { status.value = 'loading'; load() })
 </script>
 
 <template>
   <div class="orbit-w" :class="{ light: !dark }">
-    <!-- Header -->
     <a class="ow-head" href="/orbit/" title="Open Orbit">
       <span class="ow-logo">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
@@ -114,7 +106,6 @@ watch([mode, folderId], () => { status.value = 'loading'; load() })
       </svg>
     </a>
 
-    <!-- Body (fixed height per size; scrolls when content overflows) -->
     <div class="ow-body" :style="{ height: bodyHeight + 'px' }">
       <div v-if="status === 'loading'" class="ow-msg">
         <svg class="ow-spin" width="16" height="16" viewBox="0 0 24 24" fill="none">
@@ -132,11 +123,9 @@ watch([mode, folderId], () => { status.value = 'loading'; load() })
         <li v-for="it in items" :key="it.type + it.id">
           <button class="ow-row" :title="it.name" @click="open(it)">
             <span class="ow-icon">
-              <!-- folder -->
               <svg v-if="it.type === 'folder'" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44z" />
               </svg>
-              <!-- file -->
               <svg v-else width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9z" />
               </svg>
@@ -201,7 +190,6 @@ watch([mode, folderId], () => { status.value = 'loading'; load() })
 .ow-ext { color: var(--ow-dim); flex-shrink: 0; }
 .ow-head:hover .ow-ext { color: var(--ow-accent); }
 
-/* Fixed height set inline; scrolls when the list overflows. */
 .ow-body {
   padding: 4px;
   overflow-y: auto;

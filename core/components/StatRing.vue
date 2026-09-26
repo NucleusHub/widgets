@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 
 const props = defineProps({
-  pct:   { type: Number, required: true }, // 0–100
+  pct:   { type: Number, required: true },
   color: { type: String, default: '#818cf8' },
   label: { type: String, default: '' },
   size:  { type: Number, default: 92 },

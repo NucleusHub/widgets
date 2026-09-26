@@ -1,12 +1,5 @@
 import { ref } from 'vue'
 
-/**
- * Wraps an async call with reactive loading/error state.
- *
- * Usage:
- *   const { loading, error, request } = useApiRequest()
- *   const data = await request(() => fetchSomething())
- */
 export function useApiRequest() {
   const loading = ref(false)
   const error   = ref(null)

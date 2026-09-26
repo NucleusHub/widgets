@@ -1,9 +1,5 @@
 import { ref, computed } from 'vue'
 
-/**
- * Standard status machine for any widget.
- * Status values: 'loading' | 'ready' | 'error' | 'unauthenticated'
- */
 export function useWidgetState(initial = 'loading') {
   const status   = ref(initial)
   const errorMsg = ref(null)

@@ -1,10 +1,3 @@
-/**
- * Factory that creates a typed API client for a widget's backend.
- *
- * Usage:
- *   const { req } = createApiClient('/api/weather')
- *   const data = await req('GET', '/current')
- */
 export function createApiClient(baseUrl) {
   async function req(method, path) {
     const res = await fetch(`${baseUrl}${path}`, { method })

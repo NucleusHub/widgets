@@ -8,7 +8,6 @@ defineProps({ size: { type: String, default: 'small' }, dark: { type: Boolean, d
 
 const { data } = useSysInfo()
 
-// Map a temperature (°C) onto the 0–100 bar scale over a sensible range.
 const scale = (t) => (((t ?? 0) - 30) / 65) * 100
 const label = (t) => (t == null ? 'n/a' : `${Math.round(t)}°C`)
 

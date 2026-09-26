@@ -2,8 +2,6 @@
 import { ref, watch } from 'vue'
 import FolderPickerModal from './FolderPickerModal.vue'
 
-// v-model contract used by the hub's WidgetConfigModal.
-// Config shape: { mode: 'recent' | 'folder', folderId: string|null, folderName: string|null }
 const props = defineProps({
   modelValue: { type: Object, default: () => ({}) },
 })
@@ -32,7 +30,6 @@ function onPick({ id, name }) {
 
 <template>
   <div class="flex flex-col gap-4">
-    <!-- Mode -->
     <div>
       <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">Show</p>
       <div class="grid grid-cols-2 gap-2">
@@ -55,7 +52,6 @@ function onPick({ id, name }) {
       </div>
     </div>
 
-    <!-- Folder picker (folder mode only) -->
     <div v-if="mode === 'folder'">
       <p class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">Folder</p>
       <button
